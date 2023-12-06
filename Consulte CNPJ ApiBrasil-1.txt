@@ -1,0 +1,38 @@
+public class CNPJ {
+    
+	@future (callout=true) // chamada sincrona da api, mas pode apagar se quiser
+    public static void adicionaCNPJ(String cnpj, ID leadId){
+        // Apenas um teste de comunicação
+        if (Test.isRunningTest()) {
+            System.debug('IsTest');
+        }else{
+            if (cnpj != null) {
+                // Faz uma chamada para a API brasilapi
+                Http http = new Http();
+                HttpRequest request = new HttpRequest();
+                request.setEndpoint('https://brasilapi.com.br/api/cnpj/v1/'+cnpj);
+                request.setMethod('GET');
+                HttpResponse response = http.send(request);
+                
+                if (response.getStatusCode() == 200) {
+                    
+                    // Converte objetos
+                    Map<String, Object> results = (Map<String, Object>) JSON.deserializeUntyped(response.getBody());
+                    
+                    // Cria um novo lead 
+                    Lead lead = new Lead(
+                        Id = leadId,
+                        RazaoSocial__c = (String) results.get('razao_social'),
+                        NomeFantasia__c =   (String) results.get('nome_fantasia'),
+                        SituacaoCadastral__c =   (String) results.get('descricao_situacao_cadastral'),
+                        municipio__c =  (String) results.get('uf'),
+                        Country = 'Brasil'
+                    );
+                    
+                    // Atualiza o lead
+                    Update lead;
+                }
+            }
+        }
+	}
+}
